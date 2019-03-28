@@ -24,10 +24,15 @@ function preload() {
     this.load.image('platform', 'assets/platform.png');
     this.load.image('star', 'assets/star.png');
     this.load.image('bomb', 'assets/bomb.png');
+    this.load.image('dragonStone', 'assets/stone.png');
     this.load.spritesheet('dude', 'assets/dude.png', {
         frameWidth: 32,
         frameHeight: 48
     });
+
+    this.load.audio('music', './assets/music.mp3');
+    this.load.audio('pickupSound', './assets/pickup.mp3');
+    this.load.audio('explosionSound', './assets/explosion.mp3');
 }
 
 function create() {
@@ -107,7 +112,7 @@ function create() {
 
     function collectStar(player, star) {
         star.disableBody(true, true);
-
+        pickupSound.play();
         score += 10;
         scoreText.setText('Score: ' + score);
 
@@ -142,10 +147,35 @@ function create() {
         player.anims.play('turn');
 
         gameOver = true;
+        music.stop();
+        explosionSound.play();
     }
+    let musicConfig = {
+        mute: false,
+        volume: 1,
+        rate: 1,
+        detune: 0,
+        seek: 0,
+        loop: false,
+        delay: 0
+    };
+    var music = this.sound.add('music', musicConfig);
+    var pickupSound = this.sound.add('pickupSound');
+    var explosionSound = this.sound.add('explosionSound');
+    music.play();
+
+    particles = this.add.particles('dragonStone');
+
+    let emitter = particles.createEmitter({
+        speed: 2,
+        scale: { start: 0.1, end: 0 },
+        blendmode: 'add'
+    });
+    emitter.startFollow(stars);
 }
 function update() {
     //..
+
     if (cursors.left.isDown) {
         player.setVelocityX(-160);
 
@@ -156,7 +186,6 @@ function update() {
         player.anims.play('right', true);
     } else {
         player.setVelocityX(0);
-
         player.anims.play('turn');
     }
 
